@@ -26,18 +26,10 @@
 ## 🛠️ Phase 1: Project Setup & Foundation (สัปดาห์ 2)
 
 ### สิ่งที่ต้องทำ
-- [ ] ตั้งค่า **Monorepo** หรือแยก repo (frontend/backend)
 - [ ] ตั้งค่า **Git Workflow** — Branch strategy (GitHub Flow / Trunk-based)
-- [ ] ตั้ง **Branch Protection Rules** (require PR, review)
-- [ ] Linter + Formatter (ESLint, Prettier / golangci-lint)
-- [ ] **Pre-commit hooks** (Husky / lefthook)
-- [ ] **Conventional Commits** + commitlint
+- [ ] ตั้งค่า Linter/Formatter สั้นๆ ในโปรเจค
 - [ ] ตั้งค่า `.env.example` และ config management
-- [ ] เขียน `README.md` + `CONTRIBUTING.md`
-
-### 🎯 DevOps Practice ที่ได้
-- Version Control Best Practices
-- Code Quality Gates ตั้งแต่วันแรก
+- [ ] เขียน `README.md`
 
 ---
 
