@@ -37,8 +37,6 @@ This repository uses **GitHub Flow**:
 5. Review and merge after required checks pass.
 6. Delete the merged branch.
 
-Direct feature work on `main` should be avoided. Branch protection can be enabled on GitHub once repository rules are configured.
-
 ## Local Configuration
 
 Copy the example environment file and fill in local values:
