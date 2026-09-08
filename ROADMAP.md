@@ -1,4 +1,4 @@
-# 🚀 Roadmap: Uptime/Status Page Service (DevOps-Focused)
+﻿# 🚀 Roadmap: Uptime/Status Page Service (DevOps-Focused)
 
 > เว็บที่คอย ping เว็บ/API เป็นระยะ แล้วแสดง Status Page พร้อม Alert ผ่าน Email/LINE
 > เน้นกระบวนการพัฒนาด้วย DevOps Lifecycle และ Best Practices ตั้งแต่เริ่มต้นจนถึง Production
@@ -8,11 +8,8 @@
 ## 📋 Phase 0: Planning & Design (สัปดาห์ 1)
 
 ### สิ่งที่ต้องทำ
-- [ ] เขียน **Requirements** (Functional / Non-functional)
-- [ ] ออกแบบ **System Architecture Diagram**
-- [ ] ออกแบบ **Database Schema** (ERD)
-- [ ] ออกแบบ **API Spec** (OpenAPI/Swagger)
-- [ ] เลือก Tech Stack
+- [x] ออกแบบ **System Architecture Diagram**
+- [x] สรุป Tech Stack ที่เลือกแบบย่อ
 
 ### Tech Stack แนะนำ
 
@@ -23,10 +20,6 @@
 | Database | PostgreSQL + TimescaleDB (เก็บ time-series ได้ดี) |
 | Queue/Scheduler | Redis + BullMQ หรือ cron-based worker |
 | Notification | Email (SMTP/Resend), LINE Messaging API* |
-
-### 🎯 DevOps Practice ที่ได้
-- Documentation-first approach
-- Architecture Decision Records (ADR)
 
 ---
 
@@ -205,3 +198,4 @@ gantt
     Advanced Features         :2026-11-23, 14d
     Docs and Resume Prep      :2026-12-07, 7d
 ```
+
