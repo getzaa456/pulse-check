@@ -1,1 +1,23 @@
 .serena/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node / Next.js
+node_modules/
+.next/
+coverage/
+dist/
+
+# Go
+bin/
+*.test
+coverage.out
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

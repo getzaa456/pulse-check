@@ -35,23 +35,27 @@ flowchart LR
 ## 3. Components
 
 ### Web App
+
 - Next.js frontend.
 - Provides authenticated dashboard and public status pages.
 - Calls the API over HTTPS.
 - Does not directly access the database.
 
 ### API Service
+
 - Go HTTP service.
 - Handles authentication, monitor CRUD, status-page configuration, and read APIs.
 - Performs validation and authorization.
 - Publishes asynchronous work where appropriate.
 
 ### Scheduler
+
 - Identifies monitors whose next check is due.
 - Enqueues check jobs in Redis.
 - Must avoid issuing duplicate jobs for the same scheduled check.
 
 ### Checker Worker
+
 - Consumes check jobs.
 - Performs outbound HTTP/HTTPS checks.
 - Records check results.
@@ -59,15 +63,18 @@ flowchart LR
 - Enqueues notifications when DOWN/RECOVERED transitions occur.
 
 ### Notification Worker
+
 - Sends notification events through configured providers.
 - Retries transient provider failures.
 - Uses an event/idempotency key to avoid duplicate sends.
 
 ### PostgreSQL + TimescaleDB
+
 - PostgreSQL is the source of truth for users, monitors, status pages, incidents, and notification configuration.
 - TimescaleDB is used for time-series check results and efficient time-window aggregation.
 
 ### Redis
+
 - Queue transport for checks and notifications.
 - Supports distributed scheduling/locking and short-lived coordination.
 - Is not the system of record.
@@ -75,12 +82,14 @@ flowchart LR
 ## 4. Primary Data Flows
 
 ### Monitor creation
+
 1. User submits a monitor through the web app.
 2. API validates authentication, URL, interval, timeout, and expected status.
 3. API stores the monitor in PostgreSQL.
 4. Scheduler observes it as eligible for a future check.
 
 ### Health check
+
 1. Scheduler identifies a due monitor.
 2. Scheduler enqueues a check job.
 3. Checker worker requests the target URL.
@@ -89,6 +98,7 @@ flowchart LR
 6. If the state changes to DOWN or RECOVERED, an incident/state-transition record is persisted and a notification event is enqueued.
 
 ### Public status page
+
 1. Public visitor requests a status-page slug.
 2. Frontend calls the public API.
 3. API reads public monitor metadata, current state, uptime aggregation, and incident history.

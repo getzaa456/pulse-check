@@ -8,34 +8,37 @@
 ## 📋 Phase 0: Planning & Design (สัปดาห์ 1)
 
 ### สิ่งที่ต้องทำ
+
 - [x] ออกแบบ **System Architecture Diagram**
 - [x] สรุป Tech Stack ที่เลือกแบบย่อ
 
 ### Tech Stack แนะนำ
 
-| ส่วน | ตัวเลือก |
-|---|---|
-| Backend | Go / Node.js (NestJS) / Python (FastAPI) |
-| Frontend | React / Next.js + TailwindCSS |
-| Database | PostgreSQL + TimescaleDB (เก็บ time-series ได้ดี) |
-| Queue/Scheduler | Redis + BullMQ หรือ cron-based worker |
-| Notification | Email (SMTP/Resend), LINE Messaging API* |
+| ส่วน            | ตัวเลือก                                          |
+| --------------- | ------------------------------------------------- |
+| Backend         | Go / Node.js (NestJS) / Python (FastAPI)          |
+| Frontend        | React / Next.js + TailwindCSS                     |
+| Database        | PostgreSQL + TimescaleDB (เก็บ time-series ได้ดี) |
+| Queue/Scheduler | Redis + BullMQ หรือ cron-based worker             |
+| Notification    | Email (SMTP/Resend), LINE Messaging API*          |
 
 ---
 
 ## 🛠️ Phase 1: Project Setup & Foundation (สัปดาห์ 2)
 
 ### สิ่งที่ต้องทำ
-- [ ] ตั้งค่า **Git Workflow** — Branch strategy (GitHub Flow / Trunk-based)
-- [ ] ตั้งค่า Linter/Formatter สั้นๆ ในโปรเจค
-- [ ] ตั้งค่า `.env.example` และ config management
-- [ ] เขียน `README.md`
+
+- [x] ตั้งค่า **Git Workflow** — Branch strategy (GitHub Flow / Trunk-based)
+- [x] ตั้งค่า Linter/Formatter สั้นๆ ในโปรเจค
+- [x] ตั้งค่า `.env.example` และ config management
+- [x] เขียน `README.md`
 
 ---
 
 ## 💻 Phase 2: Core Development — MVP (สัปดาห์ 3-5)
 
 ### Features (เรียงตามลำดับ)
+
 1. **Auth** — สมัคร/ล็อกอิน (JWT หรือ session)
 2. **Monitor CRUD** — เพิ่ม/ลบ/แก้ไข URL ที่ต้องการ monitor
    - HTTP/HTTPS check, interval (1/5/10 นาที), timeout, expected status code
@@ -48,11 +51,13 @@
    - Alert deduplication (ไม่สแปมซ้ำๆ)
 
 ### Testing (ทำไปพร้อมกัน!)
+
 - [ ] **Unit Tests** (coverage ≥ 70%)
 - [ ] **Integration Tests** (ใช้ Testcontainers สำหรับ DB)
 - [ ] **API Tests** (Supertest / httptest)
 
 ### 🎯 DevOps Practice ที่ได้
+
 - Test-Driven mindset
 - Separation of concerns (API vs Worker)
 
@@ -61,6 +66,7 @@
 ## 🐳 Phase 3: Containerization (สัปดาห์ 6)
 
 ### สิ่งที่ต้องทำ
+
 - [ ] เขียน **Dockerfile** แบบ multi-stage build (image เล็ก, ปลอดภัย)
 - [ ] รันด้วย **non-root user**
 - [ ] **docker-compose.yml** สำหรับ local dev (app + worker + db + redis)
@@ -69,6 +75,7 @@
 - [ ] Image scanning ด้วย **Trivy**
 
 ### 🎯 DevOps Practice ที่ได้
+
 - Container best practices
 - 12-Factor App principles
 
@@ -89,6 +96,7 @@ flowchart LR
 ```
 
 ### สิ่งที่ต้องทำ
+
 - [ ] CI รันทุก PR: lint → test → build
 - [ ] **Code coverage report** (Codecov)
 - [ ] **SAST scanning** (CodeQL / Semgrep)
@@ -97,6 +105,7 @@ flowchart LR
 - [ ] **Semantic Release** — auto versioning + changelog
 
 ### 🎯 DevOps Practice ที่ได้
+
 - CI automation
 - DevSecOps (shift-left security)
 
@@ -107,17 +116,20 @@ flowchart LR
 ### เลือก Deployment Path (ตามงบ/เวลา)
 
 **Path A: เรียบง่าย (แนะนำเริ่มก่อน)**
+
 - VM Ubuntu Server + Docker Compose
 - Deploy ผ่าน GitHub Actions (SSH deploy)
 - Reverse proxy: **Caddy/Traefik** (auto HTTPS)
 
 **Path B: ระดับ Production (โชว์สกิลเต็มที่)**
+
 - **Kubernetes** (k3s บน VPS หรือ managed cluster)
 - **Helm Chart** เขียนเอง
 - **ArgoCD** — GitOps deployment
 - **Terraform** — provision infrastructure
 
 ### สิ่งที่ต้องทำ (ทั้ง 2 path)
+
 - [ ] **Infrastructure as Code** (Terraform / Ansible)
 - [ ] แยก environment: `staging` และ `production`
 - [ ] **Secrets management** (GitHub Secrets / SOPS / Vault)
@@ -126,6 +138,7 @@ flowchart LR
 - [ ] Rollback strategy
 
 ### 🎯 DevOps Practice ที่ได้
+
 - CD, GitOps, IaC
 - Environment parity
 
@@ -134,6 +147,7 @@ flowchart LR
 ## 📊 Phase 6: Observability (สัปดาห์ 10)
 
 ### สิ่งที่ต้องทำ
+
 - [ ] **Structured Logging** (JSON logs) + centralize ด้วย Loki/Grafana
 - [ ] **Metrics** — Prometheus + Grafana dashboard
   - Request rate, latency (p95/p99), error rate, worker queue depth
@@ -142,6 +156,7 @@ flowchart LR
 - [ ] Uptime ของตัวเองด้วย external checker (เช่น healthchecks.io)
 
 ### 🎯 DevOps Practice ที่ได้
+
 - Three pillars of observability (Logs, Metrics, Traces)
 - SLI/SLO thinking
 
@@ -150,6 +165,7 @@ flowchart LR
 ## 🎨 Phase 7: Polish & Advanced Features (สัปดาห์ 11-12)
 
 ### เลือกทำตามเวลา (แต่ละอันเพิ่มมูลค่า resume)
+
 - [ ] **Multi-region checking** — worker หลาย location
 - [ ] **SSL certificate expiry monitoring**
 - [ ] **Custom domain** สำหรับ status page ของ user
@@ -190,4 +206,3 @@ gantt
     Advanced Features         :2026-11-23, 14d
     Docs and Resume Prep      :2026-12-07, 7d
 ```
-
