@@ -1,4 +1,4 @@
-# 🚀 Roadmap: Uptime/Status Page Service (DevOps-Focused)
+﻿# 🚀 Roadmap: Uptime/Status Page Service (DevOps-Focused)
 
 > เว็บที่คอย ping เว็บ/API เป็นระยะ แล้วแสดง Status Page พร้อม Alert ผ่าน Email/LINE
 > เน้นกระบวนการพัฒนาด้วย DevOps Lifecycle และ Best Practices ตั้งแต่เริ่มต้นจนถึง Production
@@ -87,20 +87,16 @@
 
 ```mermaid
 flowchart LR
-    A["Push / PR"] --> B["Lint + Format Check"]
+    A["Push / PR"] --> B["Lint + Format"]
     B --> C["Unit Tests"]
     C --> D["Integration Tests"]
-    D --> E["Build Docker Image"]
-    E --> F["Security Scan - Trivy"]
-    F --> G["Push to Registry"]
+    D --> E["Build & Push Image (GHCR)"]
 ```
 
 ### สิ่งที่ต้องทำ
 
 - [ ] CI รันทุก PR: lint → test → build
-- [ ] **Code coverage report** (Codecov)
-- [ ] **SAST scanning** (CodeQL / Semgrep)
-- [ ] **Dependency scanning** (Dependabot / Renovate)
+- [ ] **Dependency scanning** (Dependabot)
 - [ ] Push image ไป **GHCR** หรือ Docker Hub พร้อม tag ตาม semver + git SHA
 - [ ] **Semantic Release** — auto versioning + changelog
 
