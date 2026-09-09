@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { hashPassword, issueToken, verifyPassword, verifyToken } from './auth.js';
 import type { Config } from './config.js';
 import type { CheckResult, Database } from './db.js';
-import { monitorInputSchema, validateTargetUrl } from './monitor.js';
+import { monitorInputSchema } from './monitor.js';
 
 type AuthedRequest = Request & { userId?: string };
 

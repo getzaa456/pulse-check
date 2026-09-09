@@ -1,4 +1,4 @@
-﻿# 🚀 Roadmap: Uptime/Status Page Service (DevOps-Focused)
+# 🚀 Roadmap: Uptime/Status Page Service (DevOps-Focused)
 
 > เว็บที่คอย ping เว็บ/API เป็นระยะ แล้วแสดง Status Page พร้อม Alert ผ่าน Email/LINE
 > เน้นกระบวนการพัฒนาด้วย DevOps Lifecycle และ Best Practices ตั้งแต่เริ่มต้นจนถึง Production
@@ -95,10 +95,9 @@ flowchart LR
 
 ### สิ่งที่ต้องทำ
 
-- [ ] CI รันทุก PR: lint → test → build
-- [ ] **Dependency scanning** (Dependabot)
-- [ ] Push image ไป **GHCR** หรือ Docker Hub พร้อม tag ตาม semver + git SHA
-- [ ] **Semantic Release** — auto versioning + changelog
+- [x] CI รันทุก PR / push เข้า `main`
+- [x] Backend: lint + format + test + build
+- [x] Frontend: lint + format + build
 
 ### 🎯 DevOps Practice ที่ได้
 

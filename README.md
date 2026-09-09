@@ -179,6 +179,17 @@ Scan the backend image with Trivy:
 ./backend/scripts/trivy-scan.ps1
 ```
 
+## CI
+
+GitHub Actions is configured in `.github/workflows/ci.yml`. The workflow runs on pull requests and pushes to `main`.
+
+It intentionally stays small:
+
+- backend: install, lint/format, tests, build
+- frontend: install, lint/format, build
+
+There is no automatic release, image publishing, or deployment in this phase.
+
 ## Main Features
 
 The frontend currently supports:
