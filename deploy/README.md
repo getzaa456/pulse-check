@@ -1,128 +1,67 @@
-# Production VM Deployment
+# Private-LAN VM Deployment
 
-This deployment path uses one Ubuntu VM, Docker Compose, Caddy, and a GitHub Actions self-hosted runner.
+This setup is for an Ubuntu Server VM on VMware with a private IP address.
 
-## Architecture
+It uses Docker Compose and a GitHub Actions self-hosted runner. The frontend is exposed on VM port 3000. Backend, PostgreSQL, Redis, and worker stay inside the Docker network. Caddy/domain/HTTPS are intentionally not used in this phase.
 
-```text
-Internet
-   |
-  80/443
-   |
- Caddy
-   |
-Frontend (Nginx)
-   |
-Backend API
-   |
-PostgreSQL + Redis
+## VM requirements
 
-Self-hosted GitHub Actions Runner
-   |
-docker compose up -d
-```
+- Ubuntu Server
+- Git
+- Docker Engine
+- Docker Compose plugin
+- GitHub Actions self-hosted runner
+- `/opt/pulse-check/.env.production`
 
-Only Caddy should be reachable from the public internet. PostgreSQL, Redis, the backend API, and the worker stay on the Docker network.
+Node.js, PostgreSQL, Redis, and Nginx do not need to be installed directly on the VM because they run in containers.
 
-## 1. Prepare the Ubuntu VM
+## Production environment file
 
-Recommended baseline:
+Create `/opt/pulse-check/.env.production` using `deploy/.env.production.example` as a template.
 
-- Ubuntu Server 24.04 LTS or newer
-- 2 vCPU
-- 2-4 GB RAM
-- 20+ GB disk
-- a public IP
-- a domain name pointed to the VM
-
-Install Git and Docker Engine with the Docker Compose plugin using Docker's official Ubuntu instructions.
-
-Create a dedicated runner user instead of running GitHub Actions as root.
-
-Example:
-
-```bash
-sudo useradd --create-home --shell /bin/bash github-runner
-sudo usermod -aG docker github-runner
-sudo mkdir -p /opt/pulse-check
-sudo chown github-runner:github-runner /opt/pulse-check
-```
-
-Log out and back in after adding the user to the `docker` group so the group membership is refreshed.
-
-## 2. Register the GitHub Actions Runner
-
-In the GitHub repository open:
+Minimum values:
 
 ```text
-Settings
-→ Actions
-→ Runners
-→ New self-hosted runner
-→ Linux
-→ x64
+FRONTEND_PORT=3000
+POSTGRES_DB=pulsecheck
+POSTGRES_USER=pulsecheck
+POSTGRES_PASSWORD=replace-with-a-strong-password
+JWT_SECRET=replace-with-a-long-random-secret
 ```
-
-GitHub will show the current download and registration commands. Run those commands on the VM as the `github-runner` user.
-
-The deploy workflow uses the default Linux runner labels:
-
-```text
-self-hosted
-linux
-```
-
-You may add a custom label later if you operate multiple runners, but it is not required for this project.
-
-After registration, install the runner as a system service using the service command shown by GitHub so it starts again after a VM reboot.
-
-Do not copy runner registration tokens into this repository. They are short-lived credentials and should only be used directly on the VM.
-
-## 3. Create Production Secrets on the VM
-
-The deployment workflow intentionally does not copy production secrets from the repository.
-
-Create:
-
-```text
-/opt/pulse-check/.env.production
-```
-
-Use `deploy/.env.production.example` as the template.
 
 Protect it:
 
 ```bash
-sudo chown github-runner:github-runner /opt/pulse-check/.env.production
+sudo chown ubuntu:ubuntu /opt/pulse-check/.env.production
 sudo chmod 600 /opt/pulse-check/.env.production
 ```
 
-Required values:
+If your runner uses another Linux user, use that user instead of `ubuntu`.
 
-- `APP_DOMAIN`
-- `POSTGRES_PASSWORD`
-- `JWT_SECRET`
+## Runner permissions
 
-Notification settings are optional.
+The deploy workflow uses:
 
-## 4. DNS and Firewall
+```yaml
+runs-on: [self-hosted, linux]
+```
 
-Create an A record for `APP_DOMAIN` pointing to the VM public IPv4 address. Add an AAAA record only when IPv6 is configured correctly.
+The runner user must be able to run Docker without sudo.
 
-Allow inbound:
+```bash
+sudo usermod -aG docker ubuntu
+```
 
-- TCP 22 for SSH, preferably restricted to trusted source IPs
-- TCP 80 for HTTP
-- TCP 443 for HTTPS
-- UDP 443 optionally for HTTP/3
+Then log out/in again or restart the runner service.
 
-Do not expose PostgreSQL port 5432 or Redis port 6379.
+Check:
 
-Caddy obtains and renews TLS certificates automatically after DNS points to the VM and ports 80/443 are reachable.
+```bash
+docker ps
+docker compose version
+```
 
-## 5. Deployment Flow
-
-Normal flow:
+## Deployment flow
 
 ```text
 push main
@@ -135,59 +74,71 @@ Deploy workflow
    ↓
 Self-hosted runner on VM
    ↓
-Build images locally
+docker compose build/up
    ↓
-docker compose up -d
-   ↓
-/readyz health verification
+/readyz check inside backend container
 ```
 
-The deployment workflow can also be started manually from the GitHub Actions UI through `workflow_dispatch`.
+## Access from your LAN
 
-## 6. Verify Production
+Find the VM private IP:
+
+```bash
+ip addr
+```
+
+If the VM IP is `192.168.1.50`, open:
+
+```text
+http://192.168.1.50:3000
+```
+
+Expected Docker mapping:
+
+```text
+0.0.0.0:3000->8080/tcp
+```
+
+The frontend Nginx container proxies `/api`, `/status`, `/healthz`, and `/readyz` to the backend internally.
+
+Do not expose PostgreSQL 5432, Redis 6379, or backend 8080 to the LAN.
+
+## Ubuntu firewall
+
+If UFW is enabled:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 3000/tcp
+sudo ufw enable
+sudo ufw status
+```
+
+You do not need ports 80/443 for this private-LAN setup.
+
+## Verify deployment
 
 On the VM:
 
 ```bash
-docker compose   --env-file /opt/pulse-check/.env.production   -f docker-compose.prod.yml   ps
+docker compose --env-file /opt/pulse-check/.env.production -f docker-compose.prod.yml ps
+curl http://127.0.0.1:3000/readyz
 ```
 
-From another machine:
-
-```text
-https://YOUR_DOMAIN/readyz
-```
-
-It should return:
+Expected response:
 
 ```json
 {"status":"ok"}
 ```
 
-## 7. Rollback
+Then test from another device on the same LAN with `http://VM_PRIVATE_IP:3000`.
 
-This project intentionally uses a simple rollback strategy.
+## Rollback
 
-In GitHub:
+Keep rollback simple: revert the problematic commit, push the revert to `main`, let CI pass, then the self-hosted runner redeploys the known-good code.
 
-1. Find the last known-good commit on `main`.
-2. Revert the bad commit, or create a revert commit.
-3. Push the revert to `main`.
-4. CI runs again.
-5. The self-hosted runner redeploys that known-good source.
+PostgreSQL and Redis data are stored in named Docker volumes and survive normal deploys.
 
-For an urgent manual rollback, check out the known-good commit on the VM runner workspace only when no Actions job is running, then run `deploy/deploy.sh`. Prefer a Git revert because it keeps repository history and deployed state aligned.
+## Later public access
 
-PostgreSQL data is stored in a named Docker volume and is not deleted during normal deploys.
-
-## Security Notes
-
-A self-hosted runner can execute commands with the permissions of its VM user. Treat access to workflows and `main` as production access.
-
-For this reason:
-
-- CI for pull requests stays on GitHub-hosted runners.
-- Only the deploy job uses the self-hosted runner.
-- Protect `main` with pull-request review if the repository has multiple contributors.
-- Do not use this production runner for workflows triggered directly by untrusted fork pull requests.
-- Keep the runner, Ubuntu packages, and Docker updated.
+If you later want public access, add it separately using router port forwarding + Caddy/domain, Cloudflare Tunnel, or a public VPS.

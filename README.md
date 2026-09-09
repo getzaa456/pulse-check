@@ -192,7 +192,7 @@ There is no automatic release, image publishing, or deployment in this phase.
 
 ## Production Deployment
 
-Production uses a single Ubuntu VM with Docker Compose, Caddy, and a GitHub Actions self-hosted runner. CI continues to run on GitHub-hosted runners; only the deploy job runs on the VM.
+Production uses a single Ubuntu VM with Docker Compose and a GitHub Actions self-hosted runner. The VM has a private LAN IP, so the frontend is exposed on port 3000 without Caddy or public HTTPS. CI continues to run on GitHub-hosted runners; only the deploy job runs on the VM.
 
 Deployment flow:
 
@@ -212,11 +212,10 @@ Production files:
 
 - `.github/workflows/deploy.yml` — CD workflow
 - `docker-compose.prod.yml` — production stack
-- `deploy/Caddyfile` — HTTPS reverse proxy
 - `deploy/deploy.sh` — deployment script
 - `deploy/.env.production.example` — production environment template
 
-See [deploy/README.md](deploy/README.md) for VM, runner, DNS, secrets, and rollback setup.
+See [deploy/README.md](deploy/README.md) for VM, runner, LAN access, secrets, and rollback setup.
 
 ## Main Features
 

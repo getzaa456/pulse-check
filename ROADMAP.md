@@ -113,26 +113,25 @@ flowchart LR
 - Ubuntu VM + Docker Compose
 - GitHub Actions Self-hosted Runner บน VM สำหรับ deploy เท่านั้น
 - CI ยังรันบน GitHub-hosted runner
-- Caddy เป็น reverse proxy และจัดการ HTTPS
+- Frontend เปิดผ่าน private IP ของ VM ที่ port 3000
 - Production secrets เก็บในไฟล์บน VM ไม่ commit เข้า Git
 
 ### สิ่งที่ต้องทำ
 
 - [x] เพิ่ม production Docker Compose
-- [x] เพิ่ม Caddy reverse proxy + HTTPS configuration
+- [x] เปิด frontend ผ่าน VM port 3000 สำหรับ LAN
 - [x] เพิ่ม GitHub Actions deploy workflow สำหรับ self-hosted runner
 - [x] แยก production secrets ออกจาก repository
 - [x] ตรวจ health หลัง deploy ผ่าน `/readyz`
 - [x] กำหนด rollback แบบ revert แล้ว redeploy commit ก่อนหน้า
-- [ ] ลงทะเบียน self-hosted runner บน VM จริง
-- [ ] ตั้ง DNS/domain ให้ชี้มายัง VM และทดสอบ HTTPS จริง
+- [x] ลงทะเบียน self-hosted runner บน VM จริง
+- [ ] ทดสอบการเข้าผ่าน private IP ภายใน LAN
 
 ### 🎯 DevOps Practice ที่ได้
 
 - Continuous Deployment
 - Self-hosted GitHub Actions Runner
 - Docker Compose production deployment
-- Reverse proxy + TLS
 - Basic secrets management
 
 ---
