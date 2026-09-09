@@ -1,0 +1,41 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Verify production environment
+        run: |
+          test -f /opt/pulse-check/.env.production
+          docker version
+          docker compose version
+
+      - name: Deploy
+        env:
+          DEPLOY_ENV_FILE: /opt/pulse-check/.env.production
+        run: bash ./deploy/deploy.sh
+
+      - name: Show status
+        if: always()
+        env:
+          DEPLOY_ENV_FILE: /opt/pulse-check/.env.production
+        run: docker compose --env-file "$DEPLOY_ENV_FILE" -f docker-compose.prod.yml ps

@@ -106,36 +106,34 @@ flowchart LR
 
 ---
 
-## 🚢 Phase 5: CD & Infrastructure (สัปดาห์ 8-9)
+## 🚢 Phase 5: CD & Infrastructure — VM + Self-hosted Runner
 
-### เลือก Deployment Path (ตามงบ/เวลา)
+### Deployment Path
 
-**Path A: เรียบง่าย (แนะนำเริ่มก่อน)**
+- Ubuntu VM + Docker Compose
+- GitHub Actions Self-hosted Runner บน VM สำหรับ deploy เท่านั้น
+- CI ยังรันบน GitHub-hosted runner
+- Caddy เป็น reverse proxy และจัดการ HTTPS
+- Production secrets เก็บในไฟล์บน VM ไม่ commit เข้า Git
 
-- VM Ubuntu Server + Docker Compose
-- Deploy ผ่าน GitHub Actions (SSH deploy)
-- Reverse proxy: **Caddy/Traefik** (auto HTTPS)
+### สิ่งที่ต้องทำ
 
-**Path B: ระดับ Production (โชว์สกิลเต็มที่)**
-
-- **Kubernetes** (k3s บน VPS หรือ managed cluster)
-- **Helm Chart** เขียนเอง
-- **ArgoCD** — GitOps deployment
-- **Terraform** — provision infrastructure
-
-### สิ่งที่ต้องทำ (ทั้ง 2 path)
-
-- [ ] **Infrastructure as Code** (Terraform / Ansible)
-- [ ] แยก environment: `staging` และ `production`
-- [ ] **Secrets management** (GitHub Secrets / SOPS / Vault)
-- [ ] Database migration strategy (golang-migrate / Prisma migrate)
-- [ ] **Zero-downtime deployment** (rolling update)
-- [ ] Rollback strategy
+- [x] เพิ่ม production Docker Compose
+- [x] เพิ่ม Caddy reverse proxy + HTTPS configuration
+- [x] เพิ่ม GitHub Actions deploy workflow สำหรับ self-hosted runner
+- [x] แยก production secrets ออกจาก repository
+- [x] ตรวจ health หลัง deploy ผ่าน `/readyz`
+- [x] กำหนด rollback แบบ revert แล้ว redeploy commit ก่อนหน้า
+- [ ] ลงทะเบียน self-hosted runner บน VM จริง
+- [ ] ตั้ง DNS/domain ให้ชี้มายัง VM และทดสอบ HTTPS จริง
 
 ### 🎯 DevOps Practice ที่ได้
 
-- CD, GitOps, IaC
-- Environment parity
+- Continuous Deployment
+- Self-hosted GitHub Actions Runner
+- Docker Compose production deployment
+- Reverse proxy + TLS
+- Basic secrets management
 
 ---
 
