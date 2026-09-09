@@ -5,16 +5,11 @@
 .env.*
 !.env.example
 
-# Node / Next.js
+# Node
 node_modules/
-.next/
 coverage/
 dist/
-
-# Go
-bin/
-*.test
-coverage.out
+*.tsbuildinfo
 
 # OS / editor
 .DS_Store

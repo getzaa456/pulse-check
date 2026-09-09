@@ -1,4 +1,4 @@
-﻿# 🚀 Roadmap: Uptime/Status Page Service (DevOps-Focused)
+# 🚀 Roadmap: Uptime/Status Page Service (DevOps-Focused)
 
 > เว็บที่คอย ping เว็บ/API เป็นระยะ แล้วแสดง Status Page พร้อม Alert ผ่าน Email/LINE
 > เน้นกระบวนการพัฒนาด้วย DevOps Lifecycle และ Best Practices ตั้งแต่เริ่มต้นจนถึง Production
@@ -52,9 +52,9 @@
 
 ### Testing (ทำไปพร้อมกัน!)
 
-- [ ] **Unit Tests** (coverage ≥ 70%)
+- [x] **Unit Tests**
 - [ ] **Integration Tests** (ใช้ Testcontainers สำหรับ DB)
-- [ ] **API Tests** (Supertest / httptest)
+- [x] **API Tests** (Supertest)
 
 ### 🎯 DevOps Practice ที่ได้
 
@@ -67,12 +67,12 @@
 
 ### สิ่งที่ต้องทำ
 
-- [ ] เขียน **Dockerfile** แบบ multi-stage build (image เล็ก, ปลอดภัย)
-- [ ] รันด้วย **non-root user**
-- [ ] **docker-compose.yml** สำหรับ local dev (app + worker + db + redis)
-- [ ] Health check endpoints (`/healthz`, `/readyz`)
-- [ ] **.dockerignore** ให้เรียบร้อย
-- [ ] Image scanning ด้วย **Trivy**
+- [x] เขียน **Dockerfile** แบบ multi-stage build (image เล็ก, ปลอดภัย)
+- [x] รันด้วย **non-root user**
+- [x] **docker-compose.yml** สำหรับ local dev (app + worker + db + redis)
+- [x] Health check endpoints (`/healthz`, `/readyz`)
+- [x] **.dockerignore** ให้เรียบร้อย
+- [x] Image scanning ด้วย **Trivy**
 
 ### 🎯 DevOps Practice ที่ได้
 

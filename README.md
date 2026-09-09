@@ -1,88 +1,204 @@
 # Pulse Check
 
-Pulse Check is an uptime/status-page service that periodically checks websites and APIs, stores availability and response-time history, and notifies users when monitored services go down or recover.
+Pulse Check is an uptime/status-page service that checks websites and APIs on a schedule, stores availability and response-time history, and sends alerts when services go down or recover.
 
-The project is intentionally built in phases to demonstrate a practical DevOps lifecycle from planning through production.
+## Project Structure
 
-## Architecture
+Frontend and backend are separated into their own application folders:
 
-The current architecture is documented in [docs/architecture.md](docs/architecture.md).
+```text
+pulse-check/
+├─ frontend/
+│  ├─ src/
+│  │  ├─ App.tsx
+│  │  ├─ api.ts
+│  │  ├─ main.tsx
+│  │  └─ styles.css
+│  ├─ Dockerfile
+│  ├─ nginx.conf
+│  ├─ package.json
+│  └─ tsconfig.json
+│
+├─ backend/
+│  ├─ src/
+│  │  ├─ app.ts
+│  │  ├─ auth.ts
+│  │  ├─ checker.ts
+│  │  ├─ config.ts
+│  │  ├─ db.ts
+│  │  ├─ notifier.ts
+│  │  ├─ server.ts
+│  │  └─ worker.ts
+│  ├─ tests/
+│  ├─ scripts/
+│  │  └─ trivy-scan.ps1
+│  ├─ Dockerfile
+│  ├─ package.json
+│  └─ tsconfig.json
+│
+├─ docs/
+├─ docker-compose.yml
+├─ .env.example
+├─ ROADMAP.md
+└─ README.md
+```
 
-Core direction:
+Files at the repository root are shared infrastructure/documentation rather than frontend or backend application code.
 
-- **Backend / workers:** Go
-- **Frontend:** Next.js + TypeScript
-- **Database:** PostgreSQL + TimescaleDB
-- **Queue / coordination:** Redis
-- **Local development:** Docker Compose
-- **CI/CD:** GitHub Actions + GHCR
+## Stack
 
-## Repository Status
+### Frontend
 
-The project is currently at **Phase 1 — Project Setup & Foundation**.
+- React
+- TypeScript
+- Vite
+- Nginx for the production container
 
-Application services will be introduced in Phase 2. Phase 1 only establishes repository conventions, configuration defaults, and basic formatting so the project stays lightweight.
+### Backend
 
-## Git Workflow
+- Node.js
+- TypeScript
+- Express
+- PostgreSQL
+- Redis + BullMQ
+- JWT + bcrypt
+- SMTP / Discord notifications
+- Vitest + Supertest
 
-This repository uses **GitHub Flow**:
+## Try the Complete App
 
-1. Keep `main` deployable.
-2. Create a short-lived branch for each change, for example:
-   - `feat/monitor-crud`
-   - `fix/check-timeout`
-   - `docs/architecture`
-3. Commit focused changes.
-4. Open a pull request into `main`.
-5. Review and merge after required checks pass.
-6. Delete the merged branch.
+From the repository root:
+
+```bash
+docker compose up -d --build
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+The backend API is also exposed directly at:
+
+```text
+http://localhost:8080
+```
+
+Check containers:
+
+```bash
+docker compose ps
+```
+
+Stop everything:
+
+```bash
+docker compose down
+```
+
+## Frontend Development
+
+Run the frontend from its own folder:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite runs at `http://localhost:3000` and proxies API/status requests to the backend at `http://localhost:8080`.
+
+Build the frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+## Backend Development
+
+Run backend commands from the backend folder:
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+Run the worker in another terminal:
+
+```bash
+cd backend
+npm run dev:worker
+```
+
+Build:
+
+```bash
+cd backend
+npm run build
+```
+
+Run tests:
+
+```bash
+cd backend
+npm test
+```
+
+Check formatting:
+
+```bash
+cd backend
+npm run format:check
+```
 
 ## Local Configuration
 
-Copy the example environment file and fill in local values:
+Shared Docker configuration is documented in the root `.env.example`.
+
+Copy it when local overrides are needed:
 
 ```text
 .env.example -> .env
 ```
 
-Do not commit `.env` or any file containing real secrets.
+Never commit real credentials or secrets.
 
-Configuration principles:
+## Container Security
 
-- Environment variables are the source of runtime configuration.
-- Defaults may be used only for safe local-development values.
-- Secrets must not be committed to Git.
-- Production secrets should be supplied by the deployment platform or secrets manager.
-- Timestamps will be stored in UTC.
+Both application containers run without root privileges:
 
-## Formatting
+- backend runs as the built-in Node `node` user
+- frontend runs with `nginx-unprivileged`
 
-Repository-wide text, Markdown, JSON, YAML, TypeScript, and frontend files use Prettier.
+Scan the backend image with Trivy:
 
-Available commands:
-
-```bash
-npm install
-npm run format
-npm run format:check
+```powershell
+./backend/scripts/trivy-scan.ps1
 ```
 
-Go source files will use the standard `gofmt` formatter when the Go services are added in Phase 2.
+## Main Features
 
-## Planned Services
+The frontend currently supports:
 
-The architecture separates user-facing traffic from asynchronous monitoring work:
+- registration and login
+- creating uptime monitors
+- UP / DOWN / UNKNOWN monitor status
+- automatic state refresh
+- deleting monitors
+- creating a public status page
 
-- Web application
-- API service
-- Scheduler
-- Checker worker
-- Notification worker
-- PostgreSQL / TimescaleDB
-- Redis
+The backend provides:
 
-See [docs/architecture.md](docs/architecture.md) for the component and data-flow diagrams.
+- Auth API
+- Monitor CRUD
+- checker worker
+- BullMQ scheduling
+- incident tracking
+- email / Discord alerts
+- public status pages
+- `/healthz` and `/readyz`
 
-## Roadmap
-
-Development phases are tracked in [ROADMAP.md](ROADMAP.md).
+See [docs/architecture.md](docs/architecture.md) for the architecture and [ROADMAP.md](ROADMAP.md) for development phases.
