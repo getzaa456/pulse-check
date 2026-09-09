@@ -185,9 +185,3 @@ See [monitoring/README.md](monitoring/README.md).
 - PostgreSQL and Redis are not exposed in the VM LAN deployment
 - production secrets are not committed to Git
 - PR CI stays on GitHub-hosted runners; the self-hosted VM runner is used only for deployment
-
-## Portfolio / Resume
-
-A resume-ready summary and interview talking points are available in [docs/resume-summary.md](docs/resume-summary.md).
-
-For a short portfolio recording, use [docs/demo-checklist.md](docs/demo-checklist.md).
