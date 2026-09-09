@@ -1,71 +1,92 @@
 # Pulse Check
 
-Pulse Check is an uptime/status-page service that checks websites and APIs on a schedule, stores availability and response-time history, and sends alerts when services go down or recover.
+Pulse Check is a DevOps-focused uptime monitoring platform that checks websites and APIs on a schedule, records availability and response-time history, opens incidents when targets go down, and provides both an authenticated dashboard and public status pages.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    User[User / LAN Client] --> FE[React Frontend :3000]
+    FE --> API[Node.js API]
+    API --> PG[(PostgreSQL)]
+    API --> METRICS[/metrics/]
+    Worker[Checker Worker] --> Redis[(Redis / BullMQ)]
+    Worker --> PG
+    Worker --> Targets[Monitored Targets]
+    Worker --> Alerts[SMTP / Discord]
+    Prom[Prometheus] --> METRICS
+    Grafana[Grafana :3001] --> Prom
+
+    GitHub[GitHub Actions CI] --> Runner[Self-hosted Runner on Ubuntu VM]
+    Runner --> Compose[Docker Compose Deploy]
+    Compose --> FE
+    Compose --> API
+    Compose --> Worker
+    Compose --> Prom
+    Compose --> Grafana
+```
+
+## What This Project Demonstrates
+
+- Full-stack application development with React and Node.js/TypeScript
+- Background job processing with Redis and BullMQ
+- PostgreSQL persistence and incident history
+- Docker multi-stage builds and Docker Compose
+- CI with GitHub Actions
+- CD to an Ubuntu VM using a self-hosted GitHub Actions runner
+- production secrets kept outside Git
+- health/readiness checks and simple rollback
+- Prometheus metrics and Grafana dashboards
+
+## Tech Stack
+
+| Area | Technology |
+| --- | --- |
+| Frontend | React, TypeScript, Vite, Nginx |
+| Backend | Node.js, TypeScript, Express |
+| Database | PostgreSQL |
+| Queue | Redis, BullMQ |
+| Auth | JWT, bcrypt |
+| Notifications | SMTP, Discord Webhook |
+| Testing | Vitest, Supertest |
+| Containers | Docker, Docker Compose |
+| CI/CD | GitHub Actions, Self-hosted Runner |
+| Monitoring | Prometheus, Grafana |
+
+## Main Features
+
+- registration and login
+- monitor CRUD
+- scheduled HTTP/HTTPS uptime checks
+- UP / DOWN / UNKNOWN state tracking
+- response-time history
+- incident creation and recovery handling
+- public status pages
+- SMTP and Discord notifications
+- `/healthz`, `/readyz`, and `/metrics` endpoints
+- Grafana dashboard for request rate, 5xx errors, p95 latency, and monitor status
 
 ## Project Structure
 
-Frontend and backend are separated into their own application folders:
-
 ```text
 pulse-check/
-├─ frontend/
-│  ├─ src/
-│  │  ├─ App.tsx
-│  │  ├─ api.ts
-│  │  ├─ main.tsx
-│  │  └─ styles.css
-│  ├─ Dockerfile
-│  ├─ nginx.conf
-│  ├─ package.json
-│  └─ tsconfig.json
-│
-├─ backend/
-│  ├─ src/
-│  │  ├─ app.ts
-│  │  ├─ auth.ts
-│  │  ├─ checker.ts
-│  │  ├─ config.ts
-│  │  ├─ db.ts
-│  │  ├─ notifier.ts
-│  │  ├─ server.ts
-│  │  └─ worker.ts
-│  ├─ tests/
-│  ├─ scripts/
-│  │  └─ trivy-scan.ps1
-│  ├─ Dockerfile
-│  ├─ package.json
-│  └─ tsconfig.json
-│
+├─ frontend/                  React frontend
+├─ backend/                   API, worker, tests
+├─ monitoring/                Prometheus + Grafana
+├─ deploy/                    VM deployment docs/script
 ├─ docs/
+│  ├─ architecture.md
+│  ├─ resume-summary.md
+│  └─ demo-checklist.md
+├─ .github/workflows/
+│  ├─ ci.yml
+│  └─ deploy.yml
 ├─ docker-compose.yml
-├─ .env.example
-├─ ROADMAP.md
-└─ README.md
+├─ docker-compose.prod.yml
+└─ ROADMAP.md
 ```
 
-Files at the repository root are shared infrastructure/documentation rather than frontend or backend application code.
-
-## Stack
-
-### Frontend
-
-- React
-- TypeScript
-- Vite
-- Nginx for the production container
-
-### Backend
-
-- Node.js
-- TypeScript
-- Express
-- PostgreSQL
-- Redis + BullMQ
-- JWT + bcrypt
-- SMTP / Discord notifications
-- Vitest + Supertest
-
-## Try the Complete App
+## Run Locally
 
 From the repository root:
 
@@ -76,13 +97,9 @@ docker compose up -d --build
 Open:
 
 ```text
-http://localhost:3000
-```
-
-The backend API is also exposed directly at:
-
-```text
-http://localhost:8080
+Pulse Check: http://localhost:3000
+Grafana:     http://localhost:3001
+Backend:     http://localhost:8080
 ```
 
 Check containers:
@@ -91,165 +108,94 @@ Check containers:
 docker compose ps
 ```
 
-Stop everything:
+Stop:
 
 ```bash
 docker compose down
 ```
 
-## Frontend Development
-
-Run the frontend from its own folder:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Vite runs at `http://localhost:3000` and proxies API/status requests to the backend at `http://localhost:8080`.
-
-Build the frontend:
-
-```bash
-cd frontend
-npm run build
-```
-
-## Backend Development
-
-Run backend commands from the backend folder:
-
-```bash
-cd backend
-npm install
-npm run dev
-```
-
-Run the worker in another terminal:
-
-```bash
-cd backend
-npm run dev:worker
-```
-
-Build:
-
-```bash
-cd backend
-npm run build
-```
-
-Run tests:
-
-```bash
-cd backend
-npm test
-```
-
-Check formatting:
-
-```bash
-cd backend
-npm run format:check
-```
-
-## Local Configuration
-
-Shared Docker configuration is documented in the root `.env.example`.
-
-Copy it when local overrides are needed:
-
-```text
-.env.example -> .env
-```
-
-Never commit real credentials or secrets.
-
-## Container Security
-
-Both application containers run without root privileges:
-
-- backend runs as the built-in Node `node` user
-- frontend runs with `nginx-unprivileged`
-
-Scan the backend image with Trivy:
-
-```powershell
-./backend/scripts/trivy-scan.ps1
-```
-
 ## CI
 
-GitHub Actions is configured in `.github/workflows/ci.yml`. The workflow runs on pull requests and pushes to `main`.
+`.github/workflows/ci.yml` runs on pull requests and pushes to `main`.
 
-It intentionally stays small:
+Backend:
 
-- backend: install, lint/format, tests, build
-- frontend: install, lint/format, build
+```text
+npm ci → lint → format check → tests → build
+```
 
-There is no automatic release, image publishing, or deployment in this phase.
+Frontend:
 
-## Production Deployment
+```text
+npm ci → lint → format check → build
+```
 
-Production uses a single Ubuntu VM with Docker Compose and a GitHub Actions self-hosted runner. The VM has a private LAN IP, so the frontend is exposed on port 3000 without Caddy or public HTTPS. CI continues to run on GitHub-hosted runners; only the deploy job runs on the VM.
+## Deployment
 
-Deployment flow:
+The current deployment target is an Ubuntu Server VM on VMware with a private LAN IP.
 
 ```text
 push main
-  ↓
+   ↓
 CI passes
-  ↓
-Self-hosted runner on VM
-  ↓
-docker compose build/up
-  ↓
-/readyz health check
+   ↓
+Deploy workflow
+   ↓
+Self-hosted GitHub Actions Runner
+   ↓
+Docker Compose on Ubuntu VM
 ```
 
-Production files:
+LAN access:
 
-- `.github/workflows/deploy.yml` — CD workflow
-- `docker-compose.prod.yml` — production stack
-- `deploy/deploy.sh` — deployment script
-- `deploy/.env.production.example` — production environment template
+```text
+Pulse Check: http://VM_PRIVATE_IP:3000
+Grafana:     http://VM_PRIVATE_IP:3001
+```
 
-See [deploy/README.md](deploy/README.md) for VM, runner, LAN access, secrets, and rollback setup.
+Production secrets are stored on the VM at:
+
+```text
+/opt/pulse-check/.env.production
+```
+
+See [deploy/README.md](deploy/README.md) for the VM deployment setup.
 
 ## Monitoring
 
-Phase 6 uses only Prometheus and Grafana. The backend exposes Prometheus metrics at `/metrics`, Prometheus scrapes the API internally, and Grafana is exposed on port `3001`.
+Prometheus scrapes the backend at `app:8080/metrics` inside the Docker network. Prometheus itself is not exposed to the LAN.
 
-Local URLs:
+Grafana is provisioned automatically with the `Pulse Check Overview` dashboard.
 
-```text
-App:     http://localhost:3000
-Grafana: http://localhost:3001
-```
+Metrics include:
 
-The provisioned `Pulse Check Overview` dashboard shows request rate, 5xx error rate, p95 latency, and monitor UP/DOWN/UNKNOWN counts. See [monitoring/README.md](monitoring/README.md) for details.
+- HTTP request rate
+- HTTP 5xx error rate
+- request latency histogram / p95
+- monitor counts by `UP`, `DOWN`, and `UNKNOWN`
+- default Node.js/process metrics
 
-## Main Features
+See [monitoring/README.md](monitoring/README.md).
 
-The frontend currently supports:
+## Security / Reliability Notes
 
-- registration and login
-- creating uptime monitors
-- UP / DOWN / UNKNOWN monitor status
-- automatic state refresh
-- deleting monitors
-- creating a public status page
+- backend and frontend containers run as non-root users
+- monitor checks reject direct private/local targets to reduce SSRF risk
+- HTTP checks have timeout and redirect limits
+- PostgreSQL and Redis are not exposed in the VM LAN deployment
+- production secrets are not committed to Git
+- PR CI stays on GitHub-hosted runners; the self-hosted VM runner is used only for deployment
 
-The backend provides:
+## Portfolio / Resume
 
-- Auth API
-- Monitor CRUD
-- checker worker
-- BullMQ scheduling
-- incident tracking
-- email / Discord alerts
-- public status pages
-- `/healthz` and `/readyz`
+A resume-ready summary and interview talking points are available in [docs/resume-summary.md](docs/resume-summary.md).
 
-See [docs/architecture.md](docs/architecture.md) for the architecture and [ROADMAP.md](ROADMAP.md) for development phases.
+For a short portfolio recording, use [docs/demo-checklist.md](docs/demo-checklist.md).
+
+## Current Scope
+
+Phases 0-6 are implemented with Phase 7 intentionally skipped. Phase 8 focuses on documentation and portfolio preparation.
+
+Performance numbers are intentionally not claimed yet. Values such as maximum monitor capacity and p95/p99 latency should only be added after a repeatable load test.
+
+See [ROADMAP.md](ROADMAP.md) for the project roadmap and [docs/architecture.md](docs/architecture.md) for detailed system design.

@@ -2,114 +2,100 @@
 
 ## Overview
 
-Pulse Check separates the browser UI, synchronous API traffic, and asynchronous monitoring workload so each part can evolve and scale independently.
+Pulse Check separates browser traffic, synchronous API work, asynchronous uptime checks, durable state, and monitoring infrastructure into independent services.
 
-## High-Level Architecture
+## Application Architecture
 
 ```mermaid
 flowchart LR
-    U[User] --> FE[React Frontend]
-    V[Public Visitor] --> FE
+    User[User / LAN Client] --> FE[React + Nginx Frontend]
+    FE -->|/api /status /healthz /readyz| API[Node.js + Express API]
+    API --> DB[(PostgreSQL)]
 
-    FE -->|Nginx proxy /api| API[Node.js + TypeScript API]
-    FE -->|/status/:slug| API
+    Scheduler[Scheduler Loop] --> DB
+    Scheduler --> Queue[BullMQ Queue]
+    Queue --> Redis[(Redis)]
+    Queue --> Worker[Checker Worker]
+    Worker --> Targets[HTTP/HTTPS Targets]
+    Worker --> DB
+    Worker --> Notify[SMTP / Discord]
 
-    API --> PG[(PostgreSQL / TimescaleDB)]
-
-    S[Scheduler Loop] --> PG
-    S --> Q[BullMQ Check Queue]
-    Q --> W[Node.js Checker Worker]
-    Q --> R[(Redis)]
-    W --> T[Monitored HTTP/HTTPS Targets]
-    W --> PG
-
-    W --> NE[Notification Events]
-    NE --> NW[Notification Loop]
-    NW --> SMTP[Email / SMTP]
-    NW --> DISCORD[Discord Webhook]
+    Prom[Prometheus] -->|scrape /metrics| API
+    Grafana[Grafana] --> Prom
 ```
 
-## Components
-
-### React Frontend
-
-- React + TypeScript + Vite.
-- Provides registration/login and the monitoring dashboard.
-- Lets users create/delete monitors and create public status pages.
-- Polls monitor state every 10 seconds.
-- Production build is served by an unprivileged Nginx container.
-- Nginx proxies API and public-status requests to the API service, keeping the browser on one origin.
-
-### API Service
-
-- Node.js + TypeScript + Express.
-- Handles registration/login with JWT authentication.
-- Provides Monitor CRUD.
-- Creates public status pages.
-- Exposes liveness and readiness endpoints.
-- Reads availability, recent response-time data, and incident history from PostgreSQL.
-
-### Scheduler
-
-- Runs inside the worker process for the MVP.
-- Claims monitors whose `next_check_at` is due.
-- Uses PostgreSQL row locking with `FOR UPDATE SKIP LOCKED` to avoid duplicate scheduling.
-- Pushes checks into BullMQ.
-
-### Checker Worker
-
-- Consumes BullMQ jobs from Redis.
-- Performs HTTP/HTTPS checks with timeout and redirect limits.
-- Rejects local/private targets to reduce SSRF risk.
-- Stores status, response time, HTTP status, and timestamp.
-- Opens incidents on DOWN transitions and resolves them on recovery.
-
-### Notification Loop
-
-- Reads durable notification events from PostgreSQL.
-- Sends DOWN and RECOVERED alerts.
-- Supports SMTP email and Discord Webhook for the MVP.
-- Uses a unique deduplication key so the same incident transition is not repeatedly emitted.
-
-### PostgreSQL / TimescaleDB
-
-PostgreSQL is the source of truth for users, monitors, check results, incidents, status pages, and notification events.
-
-### Redis + BullMQ
-
-Redis is used for transient queue processing. Durable monitor state, incidents, and notification state remain in PostgreSQL.
-
-## Main Flow
-
-### Create monitor
-
-1. User signs in through the React frontend.
-2. Frontend sends the request through Nginx to the API.
-3. API validates and stores the monitor.
-4. Scheduler claims it when its next check is due.
-5. BullMQ delivers the job to the checker worker.
-6. Result is stored and appears in the dashboard on the next refresh.
-
-### Public status page
-
-1. User creates a status page from the dashboard.
-2. API stores the page and selected monitors.
-3. Visitor opens `/status/:slug`.
-4. Nginx proxies the request to the API.
-5. API renders uptime, response-time history, and incidents.
-
-## Deployment Boundary
+## Deployment Architecture
 
 ```mermaid
 flowchart TB
-    Browser --> FE[Frontend Container :3000]
-    FE --> API[API Container :8080]
+    GitHub[GitHub Repository] --> CI[GitHub-hosted CI Runner]
+    CI -->|CI passes on main| Deploy[Deploy Workflow]
+    Deploy --> Runner[Self-hosted Runner on Ubuntu VM]
+    Runner --> Compose[Docker Compose]
 
-    API --> DB[(PostgreSQL)]
-    Worker[Worker Container] --> Redis[(Redis)]
+    LAN[LAN Client] -->|:3000| FE[Frontend Container]
+    LAN -->|:3001| Grafana[Grafana Container]
+
+    Compose --> FE
+    Compose --> API[API Container]
+    Compose --> Worker[Worker Container]
+    Compose --> DB[(PostgreSQL)]
+    Compose --> Redis[(Redis)]
+    Compose --> Prom[Prometheus]
+    Compose --> Grafana
+
+    FE --> API
+    API --> DB
+    Worker --> Redis
     Worker --> DB
-    Worker --> Targets[Monitored Targets]
-    Worker --> Providers[Email / Discord]
+    Prom --> API
+    Grafana --> Prom
 ```
 
-The frontend, API, and worker share one repository but run as separate containers.
+Only the frontend and Grafana ports are exposed in the current private-LAN VM deployment. PostgreSQL, Redis, Prometheus, and the backend API stay on the Docker network.
+
+## Components
+
+### Frontend
+
+- React + TypeScript + Vite.
+- Production assets are served by an unprivileged Nginx container.
+- Nginx proxies API/status/health requests to the backend.
+
+### API
+
+- Node.js + TypeScript + Express.
+- JWT authentication and monitor/status-page APIs.
+- `/healthz` for liveness.
+- `/readyz` for database readiness.
+- `/metrics` for Prometheus.
+
+### Worker and Queue
+
+- Scheduler claims due monitors from PostgreSQL.
+- BullMQ/Redis carries transient check jobs.
+- Worker performs uptime checks and persists results.
+- Incidents are opened on DOWN transitions and resolved on recovery.
+
+### PostgreSQL
+
+Durable source of truth for users, monitors, check results, incidents, status pages, and notification events.
+
+### Prometheus
+
+- Scrapes backend metrics every 15 seconds.
+- Runs only inside the Docker network in the current deployment.
+
+### Grafana
+
+- Uses Prometheus as the provisioned datasource.
+- Exposed on VM/LAN port 3001.
+- Ships with the `Pulse Check Overview` dashboard.
+
+## CI/CD Boundary
+
+Pull-request and main-branch CI uses GitHub-hosted runners. The self-hosted Ubuntu runner is reserved for deployment after CI succeeds, reducing the risk of untrusted PR code running directly on the VM.
+
+## Rollback
+
+The project uses a simple Git-based rollback strategy: revert the problematic commit, let CI pass, and allow the deploy workflow to redeploy the known-good source.

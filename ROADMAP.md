@@ -157,7 +157,7 @@ flowchart LR
 
 ---
 
-## 🎨 Phase 7: Polish & Advanced Features (สัปดาห์ 11-12)
+## 🎨 Phase 7: Polish & Advanced Features — Skipped
 
 ### เลือกทำตามเวลา (แต่ละอันเพิ่มมูลค่า resume)
 
@@ -173,11 +173,10 @@ flowchart LR
 
 ## 📄 Phase 8: Documentation & Resume Prep
 
-- [ ] Architecture diagram สวยๆ ใน README
-- [ ] Demo video / GIF
-- [ ] Live demo URL
-- [ ] เขียน blog post อธิบาย technical decisions (Medium/Dev.to)
-- [ ] สรุป metrics: "รองรับ X monitors, check ทุก Y วินาที, p99 latency Z ms"
+- [x] Architecture diagram ใน README
+- [x] อัปเดต architecture document ให้ครอบคลุม CI/CD + monitoring
+- [x] เพิ่ม resume / portfolio summary
+- [x] เพิ่ม demo checklist สำหรับอัด video / GIF
 
 ---
 
