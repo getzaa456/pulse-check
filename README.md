@@ -191,11 +191,3 @@ See [monitoring/README.md](monitoring/README.md).
 A resume-ready summary and interview talking points are available in [docs/resume-summary.md](docs/resume-summary.md).
 
 For a short portfolio recording, use [docs/demo-checklist.md](docs/demo-checklist.md).
-
-## Current Scope
-
-Phases 0-6 are implemented with Phase 7 intentionally skipped. Phase 8 focuses on documentation and portfolio preparation.
-
-Performance numbers are intentionally not claimed yet. Values such as maximum monitor capacity and p95/p99 latency should only be added after a repeatable load test.
-
-See [ROADMAP.md](ROADMAP.md) for the project roadmap and [docs/architecture.md](docs/architecture.md) for detailed system design.
