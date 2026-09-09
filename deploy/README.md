@@ -27,6 +27,9 @@ POSTGRES_DB=pulsecheck
 POSTGRES_USER=pulsecheck
 POSTGRES_PASSWORD=replace-with-a-strong-password
 JWT_SECRET=replace-with-a-long-random-secret
+GRAFANA_PORT=3001
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=replace-with-a-strong-grafana-password
 ```
 
 Protect it:
@@ -110,11 +113,12 @@ If UFW is enabled:
 ```bash
 sudo ufw allow OpenSSH
 sudo ufw allow 3000/tcp
+sudo ufw allow 3001/tcp
 sudo ufw enable
 sudo ufw status
 ```
 
-You do not need ports 80/443 for this private-LAN setup.
+You do not need ports 80/443 for this private-LAN setup. Port 3001 is used by Grafana.
 
 ## Verify deployment
 
@@ -131,7 +135,10 @@ Expected response:
 {"status":"ok"}
 ```
 
-Then test from another device on the same LAN with `http://VM_PRIVATE_IP:3000`.
+Then test from another device on the same LAN:
+
+- Pulse Check: `http://VM_PRIVATE_IP:3000`
+- Grafana: `http://VM_PRIVATE_IP:3001`
 
 ## Rollback
 

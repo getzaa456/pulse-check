@@ -44,6 +44,20 @@ export class Database {
     await this.pool.query('SELECT 1');
   }
 
+  async monitorStateCounts(): Promise<{ UP: number; DOWN: number; UNKNOWN: number }> {
+    const result = await this.pool.query(
+      `SELECT current_state AS state, count(*)::int AS count
+       FROM monitors
+       WHERE enabled=true
+       GROUP BY current_state`,
+    );
+    const counts = { UP: 0, DOWN: 0, UNKNOWN: 0 };
+    for (const row of result.rows as Array<{ state: 'UP' | 'DOWN' | 'UNKNOWN'; count: number }>) {
+      counts[row.state] = row.count;
+    }
+    return counts;
+  }
+
   async migrate(): Promise<void> {
     await this.pool.query(schema);
   }

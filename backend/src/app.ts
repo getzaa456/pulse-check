@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { hashPassword, issueToken, verifyPassword, verifyToken } from './auth.js';
 import type { Config } from './config.js';
 import type { CheckResult, Database } from './db.js';
+import { metricsMiddleware, metricsRegistry, refreshMonitorMetrics } from './metrics.js';
 import { monitorInputSchema } from './monitor.js';
 
 type AuthedRequest = Request & { userId?: string };
@@ -19,6 +20,7 @@ export function createApp(db: Database, config: Pick<Config, 'JWT_SECRET'>) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '1mb' }));
+  app.use(metricsMiddleware);
 
   app.get('/healthz', (_req, res) => {
     res.json({ status: 'ok' });
@@ -31,6 +33,12 @@ export function createApp(db: Database, config: Pick<Config, 'JWT_SECRET'>) {
     } catch {
       res.status(503).json({ status: 'degraded' });
     }
+  });
+
+  app.get('/metrics', async (_req, res) => {
+    await refreshMonitorMetrics(db);
+    res.setHeader('content-type', metricsRegistry.contentType);
+    res.send(await metricsRegistry.metrics());
   });
 
   app.post('/api/v1/auth/register', async (req, res) => {

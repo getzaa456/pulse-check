@@ -217,6 +217,19 @@ Production files:
 
 See [deploy/README.md](deploy/README.md) for VM, runner, LAN access, secrets, and rollback setup.
 
+## Monitoring
+
+Phase 6 uses only Prometheus and Grafana. The backend exposes Prometheus metrics at `/metrics`, Prometheus scrapes the API internally, and Grafana is exposed on port `3001`.
+
+Local URLs:
+
+```text
+App:     http://localhost:3000
+Grafana: http://localhost:3001
+```
+
+The provisioned `Pulse Check Overview` dashboard shows request rate, 5xx error rate, p95 latency, and monitor UP/DOWN/UNKNOWN counts. See [monitoring/README.md](monitoring/README.md) for details.
+
 ## Main Features
 
 The frontend currently supports:

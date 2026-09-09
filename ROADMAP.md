@@ -125,7 +125,7 @@ flowchart LR
 - [x] ตรวจ health หลัง deploy ผ่าน `/readyz`
 - [x] กำหนด rollback แบบ revert แล้ว redeploy commit ก่อนหน้า
 - [x] ลงทะเบียน self-hosted runner บน VM จริง
-- [ ] ทดสอบการเข้าผ่าน private IP ภายใน LAN
+- [x] ทดสอบการเข้าผ่าน private IP ภายใน LAN
 
 ### 🎯 DevOps Practice ที่ได้
 
@@ -136,21 +136,24 @@ flowchart LR
 
 ---
 
-## 📊 Phase 6: Observability (สัปดาห์ 10)
+## 📊 Phase 6: Monitoring — Prometheus + Grafana
 
 ### สิ่งที่ต้องทำ
 
-- [ ] **Structured Logging** (JSON logs) + centralize ด้วย Loki/Grafana
-- [ ] **Metrics** — Prometheus + Grafana dashboard
-  - Request rate, latency (p95/p99), error rate, worker queue depth
-- [ ] **Tracing** (optional) — OpenTelemetry + Jaeger/Tempo
-- [ ] **Alerting** — Alertmanager แจ้งเตือนเมื่อระบบตัวเองมีปัญหา
-- [ ] Uptime ของตัวเองด้วย external checker (เช่น healthchecks.io)
+- [x] เพิ่ม backend `/metrics` endpoint
+- [x] เก็บ HTTP request rate / error rate / latency metrics
+- [x] เก็บจำนวน monitor แยกตาม `UP` / `DOWN` / `UNKNOWN`
+- [x] เพิ่ม Prometheus service และ scrape backend
+- [x] เพิ่ม Grafana service
+- [x] Provision Prometheus datasource อัตโนมัติ
+- [x] Provision Grafana dashboard พื้นฐาน
+- [ ] ทดสอบ Grafana บน VM ผ่าน private IP port 3001
 
 ### 🎯 DevOps Practice ที่ได้
 
-- Three pillars of observability (Logs, Metrics, Traces)
-- SLI/SLO thinking
+- Metrics-based monitoring
+- Prometheus
+- Grafana dashboards
 
 ---
 
